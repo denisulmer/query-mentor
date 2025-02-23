@@ -3,6 +3,8 @@ public class SlowQueryAnalyzerService
     private readonly OpenAIClient _client;
     private readonly SlowQueryAnalyzerOptions _options;
 
+    private const string SYSTEM_PROMPT = "System: You are an SQL query analyzer. Always respond in JSON format as specified in the user’s request.";
+
     public SlowQueryAnalyzerService(SlowQueryAnalyzerOptions options)
     {
         _options = options;
