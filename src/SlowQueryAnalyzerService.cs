@@ -11,7 +11,7 @@ public class SlowQueryAnalyzerService
         _client = new OpenAIClient(new Uri(options.AzureOpenAIEndpoint), new AzureKeyCredential(options.AzureOpenAIKey));
     }
 
-    public async Task<string> AnalyzeQueryAsync(QueryContext queryContext)
+    public async Task<AnalysisResult> AnalyzeQueryAsync(QueryContext queryContext)
     {
         string jsonContext = JsonSerializer.Serialize(queryContext);
         string prompt = $@"Analyze the following SQL query for performance issues. Provide your response in JSON format with this structure:
@@ -49,9 +49,11 @@ public class SlowQueryAnalyzerService
             Temperature = 0.5f
         };
 
-        Response<ChatCompletions> response = await _client.GetChatCompletionsAsync("your-model-name", chatCompletionsOptions);
+        Response<ChatCompletions> response = await _client.GetChatCompletionsAsync(_options.ModelName, chatCompletionsOptions);
 
-        return response.Value.Choices[0].Message.Content;
+        var analysisResult = JsonSerializer.Deserialize<AnalysisResult>(response.Value.Choices[0].Message.Content);
+        
+        return analysisResult;
     }
 }
 
