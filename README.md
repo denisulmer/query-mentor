@@ -47,6 +47,7 @@ services.AddSlowQueryAnalyzer(options =>
 {
     options.AzureOpenAIEndpoint = "https://your-endpoint.openai.azure.com/";
     options.AzureOpenAIKey = "your-api-key";
+    options.ModelName = "your-model-name";
     options.SlowQueryThresholdMs = 500; // Detect queries slower than 500ms
 });
 
