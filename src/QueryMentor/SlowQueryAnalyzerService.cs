@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace QueryMentor;
 
@@ -10,6 +11,12 @@ public class SlowQueryAnalyzerService
     internal const string SystemPrompt = "You are an SQL query analyzer. Always respond in JSON format as specified in the user’s request.";
 
     private readonly IChatCompletionClient _client;
+
+    /// <summary>Creates the service using the configured options. This is the constructor used by dependency injection.</summary>
+    public SlowQueryAnalyzerService(IOptions<SlowQueryAnalyzerOptions> options)
+        : this(options.Value)
+    {
+    }
 
     /// <summary>Creates the service using the given options.</summary>
     public SlowQueryAnalyzerService(SlowQueryAnalyzerOptions options)

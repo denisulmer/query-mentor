@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace QueryMentor;
 
@@ -40,7 +40,7 @@ public class SlowQueryInterceptor : DbCommandInterceptor
                 Tables = GetTableDefinitions(context, command.CommandText),
             };
 
-            var analyzerService = context.GetService<SlowQueryAnalyzerService>();
+            var analyzerService = _serviceProvider.GetService<SlowQueryAnalyzerService>();
             if (analyzerService != null)
             {
                 var analysis = await analyzerService.AnalyzeQueryAsync(queryContext);
