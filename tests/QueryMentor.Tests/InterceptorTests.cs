@@ -44,6 +44,19 @@ public class InterceptorTests
     }
 
     [Fact]
+    public async Task SchemaCreation_IsNotAnalyzed()
+    {
+        using var host = TestHost.Create();
+        await using var context = host.CreateContext();
+
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
+
+        await Task.Delay(200);
+        Assert.Empty(host.Client.Requests);
+    }
+
+    [Fact]
     public async Task QueryBelowThreshold_IsNotAnalyzed()
     {
         using var host = TestHost.Create(thresholdMs: 60_000);

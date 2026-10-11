@@ -16,6 +16,7 @@ namespace QueryMentor;
 /// to the <see cref="SlowQueryAnalyzerService"/> and logs the result.
 /// </summary>
 /// <remarks>
+/// Schema changes and migration commands (CREATE, ALTER, DROP, ...) are not analyzed.
 /// The analysis runs in the background: it never delays or fails the application's database command.
 /// Each distinct command text is analyzed at most once per interceptor instance (unless the analysis fails),
 /// and at most <see cref="MaxConcurrentAnalyses"/> analyses run at the same time; further slow commands are
@@ -126,7 +127,7 @@ public class SlowQueryInterceptor : DbCommandInterceptor
         {
             var executionTime = eventData.Duration.TotalMilliseconds;
             var commandText = command.CommandText;
-            if (executionTime <= _thresholdMs || string.IsNullOrWhiteSpace(commandText))
+            if (executionTime <= _thresholdMs || !CommandClassifier.IsAnalyzable(commandText))
             {
                 return;
             }
