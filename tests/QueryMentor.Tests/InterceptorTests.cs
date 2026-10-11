@@ -170,4 +170,19 @@ public class InterceptorTests
         Assert.Equal(SlowQueryInterceptor.MaxConcurrentAnalyses, host.Client.Requests.Count);
         release.SetResult(TestHost.ValidResponse);
     }
+
+    [Fact]
+    public async Task QueryOnTableAfterViewMappedEntity_IncludesSchema()
+    {
+        // BlogSummary (mapped to a view, so GetTableName() is null) sorts between Blog and Post.
+        using var host = TestHost.Create();
+        await using var context = host.CreateContext();
+
+        var posts = await context.Posts.Where(p => p.Title == "x").ToListAsync();
+
+        Assert.Empty(posts);
+        var prompt = await host.WaitForFirstRequestAsync();
+        Assert.Contains("\"TableName\":\"Posts\"", prompt);
+        Assert.Contains("IX_Posts_Title", prompt);
+    }
 }

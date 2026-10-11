@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -201,66 +200,12 @@ public class SlowQueryInterceptor : DbCommandInterceptor
 
         try
         {
-            return GetTableDefinitions(context, sql);
+            return QuerySchemaExtractor.GetTableDefinitions(context.Model, sql);
         }
         catch (Exception ex)
         {
             Log.SchemaExtractionFailed(_logger, ex);
             return [];
         }
-    }
-
-    private static List<TableDefinition> GetTableDefinitions(DbContext context, string sql)
-    {
-        var tableNames = ParseTableNamesFromSql(sql);
-        var tables = new List<TableDefinition>();
-        foreach (var tableName in tableNames)
-        {
-            var entityType = context.Model.GetEntityTypes()
-                .FirstOrDefault(e => e.GetTableName()!.Equals(tableName, StringComparison.OrdinalIgnoreCase));
-            if (entityType != null)
-            {
-                var tableDef = new TableDefinition
-                {
-                    TableName = tableName,
-                    Columns = entityType.GetProperties().Select(p => new ColumnDefinition
-                    {
-                        ColumnName = p.GetColumnName(),
-                        DataType = p.GetColumnType(),
-                        IsNullable = p.IsNullable,
-                    }).ToList(),
-                    Indexes = entityType.GetIndexes().Select(i => new IndexDefinition
-                    {
-                        IndexName = i.Name,
-                        Columns = i.Properties.Select(p => p.GetColumnName()).ToList(),
-                        IsUnique = i.IsUnique,
-                    }).ToList(),
-                    PrimaryKeyColumns = entityType.FindPrimaryKey()?.Properties
-                        .Select(p => p.GetColumnName()).ToList() ?? [],
-                };
-                tables.Add(tableDef);
-            }
-        }
-        return tables;
-    }
-
-    // Basic regex-based parser to extract table names from SQL
-    private static List<string> ParseTableNamesFromSql(string sql)
-    {
-        var tableNames = new List<string>();
-        var regex = new Regex(@"(?:FROM|JOIN)\s+([^\s]+)", RegexOptions.IgnoreCase);
-        var matches = regex.Matches(sql);
-        foreach (Match match in matches)
-        {
-            if (match.Groups.Count > 1)
-            {
-                var tableName = match.Groups[1].Value.Trim('[', ']', '"');
-                if (!tableNames.Contains(tableName))
-                {
-                    tableNames.Add(tableName);
-                }
-            }
-        }
-        return tableNames;
     }
 }
