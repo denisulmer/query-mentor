@@ -6,6 +6,26 @@
     <AssemblyName>QueryMentor</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Label="NuGet package">
+    <PackageId>QueryMentor</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Denis Ulmer</Authors>
+    <Description>Detects slow Entity Framework Core queries and asks Azure OpenAI for optimization suggestions (missing indexes, inefficient patterns, ...), which are written to your application's log.</Description>
+    <PackageTags>entity-framework-core;efcore;performance;sql;slow-query;azure-openai;ai</PackageTags>
+    <PackageProjectUrl>https://github.com/denisulmer/query-mentor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/denisulmer/query-mentor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- TODO: add <PackageLicenseExpression> once the repository has a LICENSE. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
   </ItemGroup>
