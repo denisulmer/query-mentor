@@ -14,9 +14,9 @@ internal sealed class AzureOpenAIChatCompletionClient : IChatCompletionClient
 
     private readonly ChatClient _client;
 
-    public AzureOpenAIChatCompletionClient(SlowQueryAnalyzerOptions options)
+    public AzureOpenAIChatCompletionClient(SlowQueryAnalyzerOptions options, AzureOpenAIClientOptions? clientOptions = null)
     {
-        var azureClient = new AzureOpenAIClient(new Uri(options.AzureOpenAIEndpoint), new AzureKeyCredential(options.AzureOpenAIKey));
+        var azureClient = new AzureOpenAIClient(new Uri(options.AzureOpenAIEndpoint), new AzureKeyCredential(options.AzureOpenAIKey), clientOptions);
         _client = azureClient.GetChatClient(options.ModelName);
     }
 
