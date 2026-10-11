@@ -1,7 +1,4 @@
 using System.Text.Json;
-using Azure;
-using Azure.AI.OpenAI;
-using OpenAI.Chat;
 
 namespace QueryMentor;
 
@@ -10,22 +7,36 @@ namespace QueryMentor;
 /// </summary>
 public class SlowQueryAnalyzerService
 {
-    private readonly ChatClient _client;
+    internal const string SystemPrompt = "You are an SQL query analyzer. Always respond in JSON format as specified in the user’s request.";
 
-    private const string SystemPrompt = "System: You are an SQL query analyzer. Always respond in JSON format as specified in the user’s request.";
+    private readonly IChatCompletionClient _client;
 
     /// <summary>Creates the service using the given options.</summary>
     public SlowQueryAnalyzerService(SlowQueryAnalyzerOptions options)
+        : this(new AzureOpenAIChatCompletionClient(options))
     {
-        var azureClient = new AzureOpenAIClient(new Uri(options.AzureOpenAIEndpoint), new AzureKeyCredential(options.AzureOpenAIKey));
-        _client = azureClient.GetChatClient(options.ModelName);
+    }
+
+    internal SlowQueryAnalyzerService(IChatCompletionClient client)
+    {
+        _client = client;
     }
 
     /// <summary>Analyzes the given query and returns the model's findings.</summary>
     public async Task<AnalysisResult> AnalyzeQueryAsync(QueryContext queryContext)
     {
+        var prompt = BuildPrompt(queryContext);
+        var response = await _client.CompleteAsync(SystemPrompt, prompt, CancellationToken.None).ConfigureAwait(false);
+
+        var analysisResult = JsonSerializer.Deserialize<AnalysisResult>(response!);
+
+        return analysisResult!;
+    }
+
+    internal static string BuildPrompt(QueryContext queryContext)
+    {
         var jsonContext = JsonSerializer.Serialize(queryContext);
-        var prompt = $$"""
+        return $$"""
             Analyze the following SQL query for performance issues. Provide your response in JSON format with this structure:
             {
               "problemFound": "Yes/No",
@@ -54,17 +65,5 @@ public class SlowQueryAnalyzerService
 
             Query Context: {{jsonContext}}
             """;
-
-        var chatCompletionsOptions = new ChatCompletionOptions
-        {
-            MaxOutputTokenCount = 500,
-            Temperature = 0.5f,
-        };
-
-        ChatCompletion response = await _client.CompleteChatAsync([new UserChatMessage(prompt)], chatCompletionsOptions);
-
-        var analysisResult = JsonSerializer.Deserialize<AnalysisResult>(response.Content[0].Text);
-
-        return analysisResult!;
     }
 }
