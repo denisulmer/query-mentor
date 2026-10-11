@@ -308,5 +308,4 @@ Contributions are welcome:
 
 ## License
 
-No license file has been added to this repository yet, so default copyright applies. A license (for example
-MIT) still needs to be chosen and added as a `LICENSE` file before the package is published.
+QueryMentor is released under the [MIT License](LICENSE).
