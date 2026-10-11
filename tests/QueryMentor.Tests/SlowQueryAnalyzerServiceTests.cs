@@ -83,3 +83,21 @@ public class AnalysisResponseParsingTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => service.AnalyzeQueryAsync(null!));
     }
 }
+
+public class PromptTests
+{
+    [Fact]
+    public void BuildPrompt_KeepsSqlReadable()
+    {
+        var prompt = SlowQueryAnalyzerService.BuildPrompt(new QueryContext
+        {
+            CommandText = "SELECT \"b\".\"Name\" FROM \"Blogs\" AS \"b\" WHERE \"b\".\"Name\" <> 'x' AND \"b\".\"Id\" > @p0",
+        });
+
+        // The SQL is embedded as a JSON string, so only JSON escaping (\") is expected, not HTML-safe
+        // escaping such as \u0022, \u0027 or \u003C, which makes the query harder for the model to read.
+        Assert.Contains("FROM \\\"Blogs\\\" AS \\\"b\\\"", prompt);
+        Assert.Contains("<> 'x'", prompt);
+        Assert.DoesNotContain("\\u00", prompt);
+    }
+}

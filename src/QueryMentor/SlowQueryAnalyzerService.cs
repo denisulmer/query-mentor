@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 
@@ -9,6 +10,13 @@ namespace QueryMentor;
 public class SlowQueryAnalyzerService
 {
     internal const string SystemPrompt = "You are an SQL query analyzer. Always respond in JSON format as specified in the user’s request.";
+
+    // The query context is embedded in a prompt, not in HTML, so the default HTML-safe escaping
+    // (which turns quotes into \u0022 etc.) only makes the SQL harder for the model to read.
+    private static readonly JsonSerializerOptions PromptSerializerOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private readonly IChatCompletionClient _client;
 
@@ -46,7 +54,7 @@ public class SlowQueryAnalyzerService
 
     internal static string BuildPrompt(QueryContext queryContext)
     {
-        var jsonContext = JsonSerializer.Serialize(queryContext);
+        var jsonContext = JsonSerializer.Serialize(queryContext, PromptSerializerOptions);
         return $$"""
             Analyze the following SQL query for performance issues. Provide your response in JSON format with this structure:
             {
