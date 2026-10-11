@@ -1,0 +1,16 @@
+# Normalize line endings in the repository; let Git pick the working-tree style per platform.
+* text=auto eol=lf
+
+*.cs      text diff=csharp
+*.csproj  text
+*.sln     text eol=crlf
+*.props   text
+*.targets text
+*.md      text
+*.yml     text
+*.json    text
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.snk binary
