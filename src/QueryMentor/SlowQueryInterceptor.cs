@@ -43,7 +43,7 @@ public class SlowQueryInterceptor : DbCommandInterceptor
             var analyzerService = _serviceProvider.GetService<SlowQueryAnalyzerService>();
             if (analyzerService != null)
             {
-                var analysis = await analyzerService.AnalyzeQueryAsync(queryContext);
+                var analysis = await analyzerService.AnalyzeQueryAsync(queryContext, cancellationToken);
                 Console.WriteLine("Slow Query Analysis:");
                 Console.WriteLine(JsonSerializer.Serialize(analysis));
             }

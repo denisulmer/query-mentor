@@ -30,14 +30,18 @@ public class SlowQueryAnalyzerService
     }
 
     /// <summary>Analyzes the given query and returns the model's findings.</summary>
-    public async Task<AnalysisResult> AnalyzeQueryAsync(QueryContext queryContext)
+    /// <param name="queryContext">The query to analyze.</param>
+    /// <param name="cancellationToken">Cancels the request to the model.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="queryContext"/> is <c>null</c>.</exception>
+    /// <exception cref="InvalidOperationException">The model's reply could not be parsed.</exception>
+    public async Task<AnalysisResult> AnalyzeQueryAsync(QueryContext queryContext, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(queryContext);
+
         var prompt = BuildPrompt(queryContext);
-        var response = await _client.CompleteAsync(SystemPrompt, prompt, CancellationToken.None).ConfigureAwait(false);
+        var response = await _client.CompleteAsync(SystemPrompt, prompt, cancellationToken).ConfigureAwait(false);
 
-        var analysisResult = JsonSerializer.Deserialize<AnalysisResult>(response!);
-
-        return analysisResult!;
+        return AnalysisResponseParser.Parse(response);
     }
 
     internal static string BuildPrompt(QueryContext queryContext)
