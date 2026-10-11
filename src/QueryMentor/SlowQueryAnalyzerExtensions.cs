@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace QueryMentor;
 
@@ -16,13 +15,13 @@ public static class SlowQueryAnalyzerExtensions
         this IServiceCollection services,
         Action<SlowQueryAnalyzerOptions> configureOptions)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configureOptions);
+
+        services.AddLogging();
         services.Configure(configureOptions);
         services.AddSingleton<SlowQueryAnalyzerService>();
-        services.AddSingleton<SlowQueryInterceptor>(sp =>
-        {
-            var options = sp.GetRequiredService<IOptions<SlowQueryAnalyzerOptions>>().Value;
-            return new SlowQueryInterceptor(sp, options.SlowQueryThresholdMs);
-        });
+        services.AddSingleton<SlowQueryInterceptor>();
         return services;
     }
 }
