@@ -27,14 +27,21 @@ public class SlowQueryAnalyzerService
     }
 
     /// <summary>Creates the service using the given options.</summary>
+    /// <exception cref="OptionsValidationException">The options are invalid.</exception>
     public SlowQueryAnalyzerService(SlowQueryAnalyzerOptions options)
-        : this(new AzureOpenAIChatCompletionClient(options))
+        : this(CreateClient(options))
     {
     }
 
     internal SlowQueryAnalyzerService(IChatCompletionClient client)
     {
         _client = client;
+    }
+
+    private static AzureOpenAIChatCompletionClient CreateClient(SlowQueryAnalyzerOptions options)
+    {
+        SlowQueryAnalyzerOptionsValidator.ThrowIfInvalid(options);
+        return new AzureOpenAIChatCompletionClient(options);
     }
 
     /// <summary>Analyzes the given query and returns the model's findings.</summary>
